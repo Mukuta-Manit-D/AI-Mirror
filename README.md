@@ -1,54 +1,69 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/github.svg" width="40" />
-  <img src="https://img.shields.io/badge/AI%20Mirror-Emotion%20Recognition-blueviolet?style=flat-square" />
-  <img src="https://img.shields.io/badge/Made%20with-React-blue?style=flat-square&logo=react" />
-  <img src="https://img.shields.io/badge/Backend-Flask-lightgrey?style=flat-square&logo=flask" />
+  <img src="https://i.imgur.com/UvUJkAU.png" alt="AI Mirror Logo" width="120"/>
 </p>
 
-# 🪞 AI Mirror: Real-Time Emotion Analyzer
+<h1 align="center">🪞 AI Mirror: Real-Time Emotion Analyzer</h1>
 
-**AI Mirror** is an AI-powered application that detects human emotions through **voice recordings** and **text inputs** in real time. It uses state-of-the-art transformer models to analyze emotional tone and gives instant feedback.
+<p align="center">
+  <b>Voice and text-based emotion detection powered by AI</b>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Emotion%20Recognition-AI%20Mirror-blueviolet?style=flat-square&logo=ai" />
+  <img src="https://img.shields.io/badge/Made%20With-React-blue?style=flat-square&logo=react" />
+  <img src="https://img.shields.io/badge/Backend-Flask-lightgrey?style=flat-square&logo=flask" />
+  <img src="https://img.shields.io/badge/Model-wav2vec2-yellow?style=flat-square&logo=huggingface" />
+</p>
 
 ---
 
-## ✨ Features
+## 🔍 Overview
+
+> AI Mirror is an AI-powered emotion analysis app that listens to your **voice** or reads your **text**, and instantly reflects your emotional state using advanced deep learning models. 
+
+---
+
+## 🎯 Features
 
 - 🎤 **Voice Emotion Detection**
-  - Record audio using the browser
-  - Analyze emotional tone using pre-trained models like `wav2vec2`
+  - Real-time recording with waveform display
+  - In-browser audio analysis via `wav2vec2` from HuggingFace
 - 💬 **Text Emotion Detection**
-  - Type any message and get its emotional sentiment
-- 🔊 Audio playback support for recorded clips
-- ⚡ Smooth, responsive UI with real-time waveforms
-- 🚀 Powered by HuggingFace transformers & deep learning
+  - Analyze emotional tone of any typed message
+- 🔁 **Playback Functionality**
+  - Listen to your recorded message before submission
+- ⚡ **Live Feedback UI**
+  - Beautiful React interface with waveform animation
 
 ---
 
-## 📸 Screenshots
+## 🖼️ Screenshots
 
-> Replace these with your own project screenshots
+### 🎙 Voice Analysis
+<p align="center">
+  <img src="https://i.imgur.com/Bl1wMxo.png" width="600" alt="Voice Emotion Detection Screenshot"/>
+</p>
 
-### 🎙 Voice Emotion Detection
-<img src="https://i.imgur.com/Bl1wMxo.png" width="600"/>
-
-### ✍️ Text Emotion Detection
-<img src="https://i.imgur.com/wuDzuzr.png" width="600"/>
-
----
-
-## 🛠 Tech Stack
-
-| Frontend     | Backend     | ML Models         |
-|--------------|-------------|-------------------|
-| React.js     | Flask (Python) | wav2vec2 (HuggingFace) |
-| react-mic    | Flask-CORS  | DistilBERT        |
-| axios        | torchaudio  | Custom Transformers |
+### 💬 Text Emotion Detection
+<p align="center">
+  <img src="https://i.imgur.com/wuDzuzr.png" width="600" alt="Text Emotion Detection Screenshot"/>
+</p>
 
 ---
 
-## 🧑‍💻 Local Setup
+## 🧰 Tech Stack
 
-### 1. Clone this repository
+| Frontend | Backend | Models |
+|----------|---------|--------|
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" width="30"/> React.js | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flask/flask-original.svg" width="30"/> Flask | 🤖 `wav2vec2` |
+| 🎙 `react-mic` | 🔁 `Flask-CORS` | ✍️ `DistilBERT` |
+| ⚡ `axios` | 🔊 `torchaudio`, `pydub` | 🧠 HuggingFace Transformers |
+
+---
+
+## ⚙️ Setup Instructions
+
+### 🔃 Clone the Repo
 ```bash
 git clone https://github.com/yourusername/ai-mirror.git
 cd ai-mirror
