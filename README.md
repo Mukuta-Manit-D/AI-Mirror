@@ -52,3 +52,21 @@
 ```bash
 git clone https://github.com/yourusername/ai-mirror.git
 cd ai-mirror
+```
+
+### 2. Backend Directory
+```bash
+cd backend
+python -m venv env
+env\Scripts\activate   # On Windows
+pip install -r requirements.txt
+python app.py
+```
+
+###3. Frontend Setup
+```bash
+cd ../frontend
+npm install
+npm start
+```
+###
