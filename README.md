@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://i.imgur.com/UvUJkAU.png" alt="AI Mirror Logo" width="120"/>
+  <img src="images/mirror.jpg" alt="AI Mirror Logo"/>
 </p>
 
 <h1 align="center">🪞 AI Mirror: Real-Time Emotion Analyzer</h1>
