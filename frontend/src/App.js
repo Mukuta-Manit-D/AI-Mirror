@@ -1,23 +1,33 @@
 import React, { useState, useRef } from 'react';
-import { ReactMic } from 'react-mic';
 import axios from 'axios';
+import { ReactMic } from 'react-mic';
+import './App.css';
 
 function App() {
   const [record, setRecord] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
   const [audioURL, setAudioURL] = useState('');
-  const [audioEmotion, setAudioEmotion] = useState('');
-  const [textEmotion, setTextEmotion] = useState('');
+  const [audioEmotions, setAudioEmotions] = useState([]);
   const [textInput, setTextInput] = useState('');
-  const audioRef = useRef(null);
+  const [textEmotion, setTextEmotion] = useState('');
+  const [loadingAudio, setLoadingAudio] = useState(false);
+  const [loadingText, setLoadingText] = useState(false);
+  const [error, setError] = useState('');
+  const audioRef = useRef();
 
   const startRecording = () => {
     setRecord(true);
-    setAudioEmotion('');
+    setAudioEmotions([]);
+    setAudioURL('');
+    setAudioBlob(null);
   };
 
   const stopRecording = () => {
     setRecord(false);
+  };
+
+  const onData = (recordedBlob) => {
+    // console.log('Chunk of real-time data: ', recordedBlob);
   };
 
   const onStop = (recordedBlob) => {
@@ -26,76 +36,132 @@ function App() {
   };
 
   const analyzeAudio = async () => {
-    if (!audioBlob) return alert('No audio recorded!');
-    const formData = new FormData();
-    formData.append('audio', audioBlob, 'recording.wav');
+    if (!audioBlob) {
+      setError('Please record audio first.');
+      return;
+    }
+    setLoadingAudio(true);
+    setAudioEmotions([]);
+    setError('');
     try {
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'recording.wav');
+
       const response = await axios.post('http://127.0.0.1:5000/analyze-audio', formData);
-      setAudioEmotion(response.data.emotion);
+      setAudioEmotions(response.data.top_emotions || []);
     } catch (err) {
-      console.error('Audio Analysis Error:', err);
-      alert('Error analyzing audio.');
+      console.error(err);
+      setError('Error analyzing audio input.');
+    } finally {
+      setLoadingAudio(false);
     }
   };
 
   const analyzeText = async () => {
-    if (!textInput.trim()) return alert('Enter text to analyze.');
+    if (!textInput.trim()) {
+      setError('Please enter some text.');
+      return;
+    }
+    setLoadingText(true);
+    setTextEmotion('');
+    setError('');
     try {
       const response = await axios.post('http://127.0.0.1:5000/analyze-text', {
-        text: textInput,
+        text: textInput
       });
-      setTextEmotion(response.data.emotion);
+
+      setTextEmotion(response.data.emotion || '');
     } catch (err) {
-      console.error('Text Analysis Error:', err);
-      alert('Error analyzing text.');
+      console.error(err);
+      setError('Error analyzing text.');
+    } finally {
+      setLoadingText(false);
     }
   };
 
-  return (
-    <div style={{ fontFamily: 'Arial', padding: 30 }}>
-      <h1>🧠 AI Mirror: Real-Time Emotion Analyzer</h1>
+  const getEmoji = (label) => {
+    const map = {
+      happy: '😊',
+      angry: '😠',
+      sad: '😢',
+      calm: '😌',
+      fearful: '😨',
+      disgust: '🤢',
+      surprised: '😲',
+      neutral: '😐',
+      joy: '😁'
+    };
+    return map[label.toLowerCase()] || '😶';
+  };
 
-      {/* 🎙️ Audio Section */}
-      <section style={{ marginBottom: 40 }}>
+  return (
+    <div className="App">
+      <h1>🪞 AI Mirror: Real-Time Emotion Detection</h1>
+
+      {/* Text Emotion Section */}
+      <div className="section">
+        <h2>💬 Text Emotion Detection</h2>
+        <textarea
+          rows="4"
+          cols="50"
+          value={textInput}
+          onChange={(e) => setTextInput(e.target.value)}
+          placeholder="Type your thoughts here..."
+        />
+        <br />
+        <button onClick={analyzeText} disabled={loadingText}>
+          {loadingText ? 'Analyzing...' : 'Analyze Text'}
+        </button>
+        {textEmotion && (
+          <div className="result">
+            Detected Emotion: {getEmoji(textEmotion)} <strong>{textEmotion}</strong>
+          </div>
+        )}
+      </div>
+
+      <hr />
+
+      {/* Audio Emotion Section */}
+      <div className="section">
         <h2>🎤 Voice Emotion Detection</h2>
         <ReactMic
           record={record}
           className="sound-wave"
           onStop={onStop}
+          onData={onData}
           strokeColor="#000000"
           backgroundColor="#FF4081"
-          mimeType="audio/webm"
         />
         <br />
-        <button onClick={startRecording}>Start Recording</button>
-        <button onClick={stopRecording} style={{ marginLeft: 10 }}>Stop</button>
-        <button onClick={analyzeAudio} style={{ marginLeft: 10 }}>Analyze Audio</button>
-        <br /><br />
-        {audioURL && (
-          <audio ref={audioRef} controls src={audioURL} />
-        )}
-        {audioEmotion && (
-          <p><strong>Detected Emotion (Voice):</strong> {audioEmotion}</p>
-        )}
-      </section>
+        <button onClick={startRecording} disabled={record}>Start Recording</button>
+        <button onClick={stopRecording} disabled={!record}>Stop Recording</button>
+        <button onClick={analyzeAudio} disabled={loadingAudio || !audioBlob}>
+          {loadingAudio ? 'Analyzing...' : 'Analyze Audio'}
+        </button>
 
-      {/* 💬 Text Section */}
-      <section>
-        <h2>✍️ Text Emotion Detection</h2>
-        <textarea
-          rows={4}
-          cols={50}
-          placeholder="Type your message here..."
-          value={textInput}
-          onChange={(e) => setTextInput(e.target.value)}
-        />
-        <br />
-        <button onClick={analyzeText}>Analyze Text</button>
-        <br /><br />
-        {textEmotion && (
-          <p><strong>Detected Emotion (Text):</strong> {textEmotion}</p>
+        {audioURL && (
+          <div className="playback">
+            <h4>🔊 Playback:</h4>
+            <audio ref={audioRef} controls src={audioURL}></audio>
+          </div>
         )}
-      </section>
+
+        {audioEmotions.length > 0 && (
+          <div className="result">
+            <h3>Top Emotions:</h3>
+            <ul>
+              {audioEmotions.map((emo, index) => (
+                <li key={index}>
+                  {getEmoji(emo.label)} <strong>{emo.label}</strong> - {(emo.score * 100).toFixed(1)}%
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {/* Error Message */}
+      {error && <div className="error">{error}</div>}
     </div>
   );
 }

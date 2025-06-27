@@ -1,67 +1,54 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from transformers import pipeline
 import torch
 import torchaudio
-import tempfile
+from transformers import Wav2Vec2ForSequenceClassification, Wav2Vec2FeatureExtractor, pipeline
 import os
 from pydub import AudioSegment
+from io import BytesIO
 
 app = Flask(__name__)
 CORS(app)
 
-# Load models directly from Hugging Face (online mode)
-audio_model_name = "superb/wav2vec2-base-superb-er"
-audio_classifier = pipeline("audio-classification", model=audio_model_name)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Device set to use", device)
 
-text_classifier = pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base", top_k=1)
+# Load audio model
+audio_model_name = "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition"
+audio_model = Wav2Vec2ForSequenceClassification.from_pretrained(audio_model_name).to(device)
+feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(audio_model_name)
 
-@app.route("/analyze-text", methods=["POST"])
-def analyze_text():
-    try:
-        data = request.get_json()
-        text = data.get("text", "")
-
-        if not text:
-            return jsonify({"error": "Text input is missing."}), 400
-
-        result = text_classifier(text)
-        return jsonify({"emotion": result[0]["label"]})
-
-    except Exception as e:
-        print("Error analyzing text:", str(e))
-        return jsonify({"error": "Failed to analyze text input."}), 500
+# Labels
+emotion_labels = ['angry', 'calm', 'disgust', 'fearful', 'happy', 'neutral', 'sad', 'surprised']
 
 @app.route("/analyze-audio", methods=["POST"])
 def analyze_audio():
-    try:
-        if 'audio' not in request.files:
-            return jsonify({"error": "No audio file uploaded."}), 400
+    file = request.files["file"]
+    audio = AudioSegment.from_file(BytesIO(file.read()))
+    audio = audio.set_channels(1).set_frame_rate(16000)
 
-        audio_file = request.files['audio']
+    # Export to temp WAV
+    with BytesIO() as buffer:
+        audio.export(buffer, format="wav")
+        buffer.seek(0)
+        waveform, sample_rate = torchaudio.load(buffer)
 
-        # Save to a temporary file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio:
-            audio_file.save(temp_audio.name)
-            temp_path = temp_audio.name
+    inputs = feature_extractor(waveform.squeeze().numpy(), sampling_rate=16000, return_tensors="pt")
+    with torch.no_grad():
+        logits = audio_model(**inputs.to(device)).logits
+        probs = torch.softmax(logits, dim=-1)[0]
+        top3 = torch.topk(probs, 3)
 
-        # Convert to required format using pydub
-        sound = AudioSegment.from_file(temp_path)
-        sound = sound.set_frame_rate(16000).set_channels(1)
-        sound.export(temp_path, format="wav")
+    result = [{"label": emotion_labels[i], "score": float(probs[i])} for i in top3.indices]
+    return jsonify({"top_emotions": result})
 
-        # Load waveform
-        waveform, sample_rate = torchaudio.load(temp_path)
-        result = audio_classifier(waveform, sampling_rate=sample_rate)
-
-        # Clean up temp file
-        os.remove(temp_path)
-
-        return jsonify({"emotion": result[0]["label"]})
-
-    except Exception as e:
-        print("Error analyzing audio:", str(e))
-        return jsonify({"error": "Failed to analyze audio input."}), 500
+@app.route("/analyze-text", methods=["POST"])
+def analyze_text():
+    data = request.get_json()
+    text = data["text"]
+    classifier = pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base", top_k=1)
+    result = classifier(text)[0][0]
+    return jsonify({"emotion": result["label"], "score": result["score"]})
 
 if __name__ == "__main__":
     app.run(debug=True)
