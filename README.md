@@ -41,7 +41,7 @@
 
 ### 🎙 Voice Analysis
 <p align="center">
-  <img src="https://i.imgur.com/Bl1wMxo.png" width="600" alt="Voice Emotion Detection Screenshot"/>
+  <img src="images/em.png" width="600" alt="Voice Emotion Detection Screenshot"/>
 </p>
 
 ### 💬 Text Emotion Detection
