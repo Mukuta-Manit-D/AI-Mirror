@@ -46,7 +46,7 @@
 
 ### 💬 Text Emotion Detection
 <p align="center">
-  <img src="https://i.imgur.com/wuDzuzr.png" width="600" alt="Text Emotion Detection Screenshot"/>
+  <img src="images/em.png" width="600" alt="Text Emotion Detection Screenshot"/>
 </p>
 
 ---
